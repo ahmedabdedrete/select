@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Graduation Project Recommendation Form</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      padding: 40px;
+      margin: 0;
+    }
+    .form-container {
+      background: #1e2a38;
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 900px;
+      margin: auto;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      animation: fadeIn 1s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(30px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 30px;
+    }
+    .question {
+      margin-bottom: 20px;
+      background: #2f4054;
+      padding: 15px;
+      border-radius: 10px;
+      transition: transform 0.3s;
+    }
+    .question:hover {
+      transform: scale(1.01);
+    }
+    .question i {
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+    select, input[type="text"] {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+    }
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+      gap: 10px;
+    }
+    .submit-btn {
+      background: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      flex: 1;
+    }
+    .hidden {
+      display: none;
+    }
+    #resultPage {
+      display: none;
+      padding: 20px;
+      background: #1e2a38;
+      border-radius: 12px;
+      margin-top: 30px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h1><i class="material-icons">assignment</i> Graduation Project Form</h1>
+    <form id="projectForm">
+      <div id="page-0" class="page">
+        <div class="question">
+          <i class="material-icons">person</i> Enter your name:
+          <input type="text" name="studentName" required placeholder="Enter your full name" />
+        </div>
+      </div>
+
+      <div id="pages-container"></div>
+
+      <div class="nav-buttons">
+        <button type="button" id="prevBtn" class="submit-btn hidden">Back</button>
+        <button type="button" id="nextBtn" class="submit-btn">Next</button>
+        <button type="submit" id="submitBtn" class="submit-btn hidden">Submit</button>
+      </div>
+    </form>
+
+    <div id="resultPage">
+      <h2>🎓 Recommended Project</h2>
+      <p id="recommendationText" style="font-size: 1.2rem; margin-bottom: 20px;"></p>
+      <button class="submit-btn" onclick="downloadPDF()">Download PDF</button>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      "Do you prefer software over hardware?",
+      "Are you comfortable working with sensors and embedded systems?",
+      "Do you have experience in Arduino or similar microcontrollers?",
+      "Have you worked with serial communication like UART, SPI, or I2C?",
+      "Are you familiar with PCB design tools such as Proteus or KiCad?",
+      "Do you understand LoRa communication and its applications?",
+      "Are you comfortable using GPS modules in projects?",
+      "Do you enjoy designing wearable electronics?",
+      "Can you manage battery-powered circuit designs?",
+      "Do you know how to design 3D enclosures for electronics?",
+      "Are you familiar with Machine Learning basics?",
+      "Have you trained or tested an AI/ML model before?",
+      "Can you preprocess datasets and handle missing data?",
+      "Are you familiar with Python libraries like TensorFlow or Scikit-learn?",
+      "Do you understand overfitting and model evaluation techniques?",
+      "Do you have experience with real-time data visualization?",
+      "Have you built Android or iOS applications?",
+      "Can you create responsive web applications?",
+      "Have you worked with Firebase or real-time databases?",
+      "Are you comfortable using APIs?",
+      "Do you like working on biomedical/healthcare applications?",
+      "Do you know how to use sensors like heart rate or SpO2?",
+      "Can you filter and process biomedical signal noise?",
+      "Are you interested in AI for medical diagnosis?",
+      "Have you used biofeedback systems in any project?",
+      "Have you worked with flex sensors or accelerometers?",
+      "Are you excited by gesture recognition technologies?",
+      "Have you built or controlled a robotic arm?",
+      "Are you familiar with signal processing techniques?",
+      "Would you enjoy building smart gloves or gesture chairs?",
+      "Do you enjoy combining hardware and software?",
+      "Would you rather build something physical over virtual?",
+      "Are you a team-oriented worker?",
+      "Are you confident presenting your work?",
+      "Can you stick to tight deadlines under pressure?",
+      "Do you enjoy solving complex problems?",
+      "Have you used version control tools like GitHub?",
+      "Are you comfortable working with cloud services?",
+      "Have you developed using Android Studio or Flutter?",
+      "Do you follow UX/UI design principles?",
+      "Do you know tools like Figma or Adobe XD?",
+      "Are you open to learning new frameworks?",
+      "Would you prefer a challenging project over an easy one?",
+      "Can you dedicate consistent time each week to the project?",
+      "Do you enjoy documenting and writing reports?",
+      "Do you want your project to help society?",
+      "Would you like to research new emerging tech?",
+      "Do you like working with microcontrollers?",
+      "Are you interested in assistive technologies?",
+      "Would you like your project to combine multiple fields?"
+    ];
+
+    const questionsPerPage = 10;
+    const totalPages = Math.ceil(questions.length / questionsPerPage);
+    let currentPage = 0;
+
+    const pagesContainer = document.getElementById("pages-container");
+
+    function createPages() {
+      for (let p = 0; p < totalPages; p++) {
+        const page = document.createElement("div");
+        page.classList.add("page");
+        page.id = `page-${p + 1}`;
+        if (p !== 0) page.classList.add("hidden");
+
+        for (let i = 0; i < questionsPerPage; i++) {
+          const index = p * questionsPerPage + i;
+          if (index >= questions.length) break;
+          const div = document.createElement("div");
+          div.className = "question";
+          div.innerHTML = `<i class="material-icons">quiz</i> ${index + 1}. ${questions[index]}
+            <select name="q${index + 1}" required>
+              <option value="" selected disabled>Choose an answer</option>
+              <option>Yes</option>
+              <option>No</option>
+            </select>`;
+          page.appendChild(div);
+        }
+        pagesContainer.appendChild(page);
+      }
+    }
+
+    function updatePageDisplay() {
+      document.querySelectorAll('.page').forEach((el, idx) => {
+        el.classList.toggle('hidden', idx !== currentPage);
+      });
+      document.getElementById("prevBtn").classList.toggle("hidden", currentPage === 0);
+      document.getElementById("nextBtn").classList.toggle("hidden", currentPage === totalPages);
+      document.getElementById("submitBtn").classList.toggle("hidden", currentPage !== totalPages);
+    }
+
+    createPages();
+    updatePageDisplay();
+
+    document.getElementById("nextBtn").onclick = () => {
+      currentPage++;
+      updatePageDisplay();
+    };
+    document.getElementById("prevBtn").onclick = () => {
+      currentPage--;
+      updatePageDisplay();
+    };
+
+    let formAnswers = {};
+
+    document.getElementById("projectForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const form = new FormData(e.target);
+      formAnswers = Object.fromEntries(form.entries());
+
+      const yesCount = Object.values(formAnswers).filter(val => val === "Yes").length;
+
+      let recommendation = "";
+      if (yesCount >= 40) {
+        recommendation = "Smart Wearable Wristband with LoRa and GPS";
+      } else if (yesCount >= 30) {
+        recommendation = "Biomedical AI Monitoring System";
+      } else if (yesCount >= 20) {
+        recommendation = "Gesture-Controlled Armchair";
+      } else if (yesCount >= 10) {
+        recommendation = "Integrated Biomedical + LoRa System";
+      } else {
+        recommendation = "Smart Gloves with Gesture Recognition";
+      }
+
+      document.getElementById("projectForm").classList.add("hidden");
+      document.getElementById("resultPage").style.display = "block";
+      document.getElementById("recommendationText").innerText = recommendation;
+    });
+
+    window.downloadPDF = function () {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      let y = 10;
+
+      doc.setFontSize(16);
+      doc.text("Graduation Project Questionnaire", 10, y);
+      y += 10;
+
+      doc.setFontSize(12);
+      doc.text(`Name: ${formAnswers.studentName}`, 10, y);
+      y += 10;
+
+      questions.forEach((q, idx) => {
+        doc.text(`${idx + 1}. ${q}`, 10, y);
+        y += 7;
+        doc.text(`Answer: ${formAnswers[`q${idx + 1}`] || "N/A"}`, 10, y);
+        y += 10;
+        if (y > 270) {
+          doc.addPage();
+          y = 10;
+        }
+      });
+
+      doc.text(`\nRecommended Project: ${document.getElementById("recommendationText").innerText}`, 10, y + 5);
+      doc.save("Graduation_Project_Response.pdf");
+    };
+  </script>
+</body>
+</html>
